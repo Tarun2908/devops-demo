@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_DEFAULT_REGION: "ap-south-1"
+    EKS_CLUSTER_NAME: "YOUR_CLUSTER_NAME"  # Replace with your cluster name
+    AWS_ACCOUNT_ID: "YOUR_ACCOUNT_ID"      # Replace with your account ID
+
+phases:
+  pre_build:
+    commands:
+      - echo Configuring kubectl for EKS...
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_DEFAULT_REGION
+      - kubectl version --client
+      - echo Verifying cluster access...
+      - kubectl get nodes
+
+  build:
+    commands:
+      - echo Deploying to EKS cluster...
+      - IMAGE_URI=$(cat imageDetail.json | jq -r '.imageUri')
+      - echo "Deploying image $IMAGE_URI"
+      - sed -i "s|IMAGE_PLACEHOLDER|$IMAGE_URI|g" k8s/deployment.yaml
+      - kubectl apply -f k8s/deployment.yaml
+      - echo Waiting for rollout to complete...
+      - kubectl rollout status deployment/devops-demo-app -n default --timeout=5m
+
+  post_build:
+    commands:
+      - echo Deployment completed on `date`
+      - kubectl get pods -n default
+      - kubectl get services -n default
+      - echo "Application deployed successfully"
