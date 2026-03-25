@@ -13,7 +13,7 @@ phases:
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_DEFAULT_REGION
       - kubectl version --client
       - echo Verifying cluster access...
-      - kubectl get nodes
+      #- kubectl get nodes
 
   build:
     commands:
