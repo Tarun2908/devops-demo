@@ -13,13 +13,13 @@ phases:
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_DEFAULT_REGION
       - kubectl version --client
       - echo Verifying cluster access...
-      #- kubectl get nodes
+      - kubectl get nodes
 
   build:
     commands:
       - echo Deploying to EKS cluster...
-      #- IMAGE_URI=$(cat imageDetail.json | jq -r '.imageUri')
-      - IMAGE_URI=$(cat $CODEBUILD_SRC_DIR_BuildArtifact/imageDetail.json | jq -r '.imageUri')
+      - IMAGE_URI=$(cat imageDetail.json | jq -r '.imageUri')
+      #- IMAGE_URI=$(cat $CODEBUILD_SRC_DIR_BuildArtifact/imageDetail.json | jq -r '.imageUri')
       - echo "Deploying image $IMAGE_URI"
       - sed -i "s|IMAGE_PLACEHOLDER|$IMAGE_URI|g" k8s/deployment.yaml
       - kubectl apply -f k8s/deployment.yaml
