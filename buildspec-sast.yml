@@ -1,0 +1,45 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo Installing SonarScanner...
+      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+      - unzip sonar-scanner-cli-4.7.0.2747-linux.zip
+      - export PATH=$PATH:$PWD/sonar-scanner-4.7.0.2747-linux/bin
+
+  pre_build:
+    commands:
+      - echo Starting SAST scan with SonarQube...
+      - echo Analyzing Python code...
+
+  build:
+    commands:
+      - |
+        sonar-scanner \
+          -Dsonar.projectKey=devops-demo-app \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=${SONAR_HOST_URL} \
+          -Dsonar.login=${SONAR_TOKEN} \
+          -Dsonar.python.version=3.9 \
+          -Dsonar.exclusions=**/*.pyc,**/__pycache__/**
+
+  post_build:
+    commands:
+      - echo SAST scan completed
+      - echo Checking quality gate status...
+      - |
+        # Wait for quality gate result
+        sleep 10
+        QUALITY_GATE_STATUS=$(curl -u ${SONAR_TOKEN}: "${SONAR_HOST_URL}/api/qualitygates/project_status?projectKey=devops-demo-app" | jq -r '.projectStatus.status')
+        echo "Quality Gate Status: $QUALITY_GATE_STATUS"
+        if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
+          echo "Quality gate failed!"
+          exit 1
+        fi
+
+artifacts:
+  files:
+    - '**/*'
