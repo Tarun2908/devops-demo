@@ -18,8 +18,8 @@ phases:
   build:
     commands:
       - echo Deploying to EKS cluster...
-      - IMAGE_URI=$(cat imageDetail.json | jq -r '.imageUri')
-      #- IMAGE_URI=$(cat $CODEBUILD_SRC_DIR_BuildArtifact/imageDetail.json | jq -r '.imageUri')
+      #- IMAGE_URI=$(cat imageDetail.json | jq -r '.imageUri')
+      - IMAGE_URI=$(cat $CODEBUILD_SRC_DIR_BuildArtifact/imageDetail.json | jq -r '.imageUri')
       - echo "Deploying image $IMAGE_URI"
       - sed -i "s|IMAGE_PLACEHOLDER|$IMAGE_URI|g" k8s/deployment.yaml
       - kubectl apply -f k8s/deployment.yaml
